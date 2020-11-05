@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <metarrrr http-equiv="refresh" content="2;url=s.html" />
+    <title>>Success</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: verdana;
+            background-color: black;
+            color: white;
+        }
+
+        a {
+            color: #1fa3ec;
+        }
+
+        #info {
+            text-align: center;
+            font-size: 1.5em;
+        }
+
+        #details {
+            text-align: center;
+        }
+
+        .spin {
+            display: inline-block;
+            animation: spin 2s linear infinite;
+            -webkit-animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @-webkit-keyframes spin {
+            to {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+    </style>
+    <script>
+        setTimeout(function () {
+		if(window.location.contains("192.168.4.1")
+	            document.write("<HTML><HEAD><TITLE>Success</TITLE></HEAD><BODY>Success</BODY></HTML>");
+        }, 500);
+    </script>
+
+</head>
+
+<body>
+    <div style='text-align:left;display:inline-block;width:320px;padding:5px'>
+        <p id='info'>WiFi settings changed</p>
+        <p id='details'><span class="spin">&#x1F553;</span> Device is rebooting to apply changes</p>
+    </div>
+</body>
+
+</html>

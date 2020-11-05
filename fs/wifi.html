@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <title>WiFi settings</title>
+    <script>
+        function g(i) { return document.getElementById(i); };
+        function p(t, l) { if (confirm(t)) l(); };
+        function E(s) { return document.createElement(s) };
+        var S = "setAttribute", A = "appendChild", H = "innerHTML", X, wl, c;
+
+        function rpc_call(method, cb, arg) {
+            var Y = new XMLHttpRequest();
+            Y.onreadystatechange = function () {
+                if (this.readyState != XMLHttpRequest.DONE) {
+                    return false;
+                }
+                let result = false;
+                if (this.status != 200) {
+                    if (this.responseText && this.responseText.length > 0) {
+                        let resp = JSON.parse(this.responseText);
+                        let s = '';
+                        Object.keys(resp).forEach(key => {
+                            let v = resp[key];
+                            s = s + '<b>' + key + ':</b> ' + v + '<br/>';
+                        });
+                        if (s.length)
+                            wl[H] = method + " error " + this.status + "<br/>" + s;
+                        else
+                            wl[H] = method + " error " + this.status + "<br/>" + this.responseText;
+                    }
+                    else
+                        wl[H] = method + " error (code " + this.status.toString() + ")";
+                    setTimeout(() => wl[H] = "", 5000);
+                }
+                else
+                    result = JSON.parse(this.responseText);
+                cb && cb(result, arg);
+            };
+            Y.open(arg ? "POST" : "GET", "/rpc/" + method, true);
+            Y.setRequestHeader("Content-Type", "application/json");
+            Y.send(arg ? JSON.stringify(arg) : null);
+        };
+
+        function get_info_rpc() {
+            // Disabling controls
+            c[H] = "not connected";
+            let b1 = g('scan');
+            let old1 = b1.style.background;
+            b1.disabled = true;
+            b1.style.background = 'darkgray';
+            let b2 = g('save');
+            let old2 = b2.style.background;
+            b2.disabled = true;
+            b2.style.background = 'darkgray';
+            let b3 = g('reset');
+            let old3 = b3.style.background;
+            b3.disabled = true;
+            b3.style.background = 'darkgray';
+            let si = g('s'); si.disabled = true;
+            let pi = g('p'); pi.disabled = true;
+
+            rpc_call("Sys.GetInfo", function (resp) {
+                // no rpc - fatal, controls disabled
+                if (!resp)
+                    return;
+                let s = '';
+                Object.keys(resp).forEach(key => {
+                    let v = resp[key];
+                    if (typeof v === 'object')
+                        v = JSON.stringify(v);
+                    s = s + key + ': ' + v + '\n';
+                });
+                g('conn').title = s;
+                c[H] = '<b>' + resp.app + '</b><br/>v' + resp.fw_version + '<br/>' + resp.id;
+
+                // Enablng controls
+                b1.disabled = false;
+                b1.style.background = old1;
+                b2.disabled = false;
+                b2.style.background = old2;
+		// Not for captive
+                b3.disabled = false;
+                b3.style.background = old3;
+                si.disabled = false;
+                pi.disabled = false;
+                scan_rpc();
+            });
+        };
+
+        function R(r) {
+            if (r === 0 || r <= -100) {
+                q = 0;
+            } else if (r >= -50) {
+                q = 100;
+            } else {
+                q = 2 * (r + 100);
+            }
+            return q;
+        };
+
+        function scan_rpc() {
+            let bs = g('scan');
+            let old = bs.style.background;
+            bs.disabled = true;
+            bs.style.background = 'darkgray';
+            let bss = g('scans');
+            bss[S]("class", "spin");
+            wl[H] = "Scanning...";
+            rpc_call("WiFi.Scan", function (resp) {
+                bs.disabled = false;
+                bs.style.background = old;
+                bss[S]("class", "");
+                if (!resp)
+                    return;
+                wl[H] = "";
+                resp.forEach(function (e) {
+                    var d = E('div'), i = E('a'), c = E('a');
+                    i[S]('class', 's'); c[S]('class', 'q');
+                    i.onclick = function () { g('s').value = e.ssid; g('p').focus(); };
+                    c.title = e.bssid;
+                    i[A](document.createTextNode(e.ssid));
+                    c[H] = R(parseInt(e.rssi)) + '% ' + String.fromCodePoint((parseInt(e.auth_mode) == 0) ? 0x26A0 : 0x1F510);
+                    wl[A](i); wl[A](c);
+                    wl[A](document.createElement('br'));
+                });
+            });
+        };
+        function save_rpc() {
+            let bs = g('save');
+            let old = bs.style.background;
+            bs.disabled = true;
+            bs.style.background = 'darkgray';
+            let bss = g('saves');
+            bss[S]("class", "spin");
+            wl[H] = "Saving...";
+
+            var sta = { enable: true, ssid: g('s').value, pass: g('p').value };
+            var config = { wifi: { sta: sta, ap: { enable: false } } };
+
+            rpc_call("Config.Set", function (resp) {
+                bs.disabled = false;
+                bs.style.background = old;
+                bss[S]("class", "");
+                if(!resp)
+                    return;
+                wl[H] = "Configuration saved";
+                window.location.href = "save.html";
+            }, { config, save: true, reboot: true });
+        };
+        function reset_rpc() {
+            let bs = g('reset');
+            let old = bs.style.background;
+            bs.disabled = true;
+            bs.style.background = 'darkgray';
+            let bss = g('resets');
+            bss[S]("class", "spin");
+            wl[H] = "Resetting...";
+
+            var sta = { enable: false, ssid: '', pass: '' };
+            var config = { wifi: { sta: sta, ap: { enable: true } } };
+
+            rpc_call("Config.Set", function (resp) {
+                wl[H] = "Settings changed";
+                window.location.href = "save.html";
+            }, { config, save: true, reboot: true });
+        };
+
+        document.addEventListener('readystatechange', () => {
+            if (document.readyState == 'complete') {
+                wl = g('wl'), c = g('conn');
+                get_info_rpc()
+            };
+        });
+
+    </script>
+    <style>
+        input {
+            padding: 5px;
+            font-size: 1em;
+            width: 95%;
+            filter: invert(100%);
+        }
+
+        body {
+            text-align: center;
+            font-family: verdana;
+            background-color: black;
+            color: white;
+        }
+
+        a {
+            color: #1fa3ec;
+        }
+
+        button {
+            border: 0;
+            border-radius: 0.3em;
+            background-color: #1fa3ec;
+            color: #fff;
+            line-height: 2.4em;
+            font-size: 1.2em;
+            width: 100%;
+            display: block;
+        }
+
+        .q {
+            float: right;
+        }
+
+        .s {
+            display: inline-block;
+            width: 14em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .s:hover {
+            color: #fff;
+            background-color: #1fa3ec;
+        }
+
+        #wl {
+            line-height: 1.5em;
+        }
+
+        #info {
+            text-align: center;
+            font-size: 1.5em;
+        }
+
+        #conn {
+            text-align: right;
+            font-size: 0.8em;
+            color: darkgrey;
+        }
+
+        #copyright {
+            text-align: center;
+            font-size: 0.8em;
+            color: darkgrey;
+        }
+
+        .spin {
+            display: inline-block;
+            animation: spin 2s linear infinite;
+            -webkit-animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @-webkit-keyframes spin {
+            to {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div style='text-align:left;display:inline-block;width:320px;padding:5px'>
+        <table border="0">
+            <tr>
+                <td>
+                    <img src="logo.png"></td>
+                <td>
+                    <p id='info'>WiFi settings</p>
+                    <p id='conn'></p>
+                </td>
+            </tr>
+        </table>
+        <p id='details'>Press <b>&#x1F50D; Scan</b> and select WiFi network</p>
+        <button id="scan" onclick="scan_rpc()"><span id="scans">&#x1F50D;</span> Scan</button>
+        <p id='wl'></p>
+        <input id='s' name='n' length=32 placeholder='SSID'>
+        <br>
+        <input id='p' name='p' length=64 type='password' placeholder='password'>
+        <br>
+        <br>
+        <button id="save" onclick="save_rpc()"><span id="saves">&#x1F4BE;</span> Save
+        </button>
+        <br>
+        <br>
+        <button id="reset" title="Reset network settings"
+            onclick="p('Reset settings and reboot in AP mode?', reset_rpc)"><span id="resets">&#x1F198;</span> Reset
+        </button>
+        <br>
+        <a href="/">Back</a>
+        <br>
+        <p id='copyright'>Powered by Mongoose OS &#x00A9; 2020</p>
+        <br>
+    </div>
+</body>
+
+</html>

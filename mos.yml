@@ -1,0 +1,34 @@
+author: d4rkmen <darkmen@i.ua>
+description: WiFi setup library
+type: lib
+version: 1.0
+
+tags:
+  - c
+  - hw
+
+sources:
+  - src
+
+includes:
+  - include
+
+filesystem:
+  - fs
+
+config_schema:
+
+libs:
+  - origin: https://github.com/mongoose-os-libs/wifi
+  - origin: https://github.com/mongoose-os-libs/http-server
+  - origin: https://github.com/mongoose-os-libs/rpc-common
+  - origin: https://github.com/mongoose-os-libs/rpc-ws
+  - origin: https://github.com/mongoose-os-libs/rpc-service-config
+
+cdefs:
+  MG_ENABLE_DNS: 1
+  MG_ENABLE_DNS_SERVER: 1
+  MG_ENABLE_CALLBACK_USERDATA: 1
+
+# Used by the mos tool to catch mos binaries incompatible with this file format
+manifest_version: 2020-08-02
