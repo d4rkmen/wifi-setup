@@ -2,7 +2,7 @@
 
 # WiFi setup library for Mongoose OS
 
-Web-based WiFi setup using Mongoose OS RPC service
+Web-based WiFi setup using Mongoose OS RPC service. Designed for `ESP8266` and `ESP32` platforms
 
 # Install
 
