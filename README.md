@@ -31,4 +31,5 @@ The [demo-c](https://github.com/mongoose-os-apps/demo-c) app WiFi setup flow
 # Copyrights
 
 Myles McNamara <https://smyl.es> (captive portal)
+
 Cesanta Software Limited (Scan)
