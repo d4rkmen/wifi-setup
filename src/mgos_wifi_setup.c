@@ -23,6 +23,8 @@
 #include "mgos_rpc.h"
 #include "mgos_wifi.h"
 
+#include "common/platform.h"
+
 #if CS_PLATFORM == CS_P_ESP8266
 #include "user_interface.h"
 #endif
