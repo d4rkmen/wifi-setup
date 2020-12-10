@@ -18,12 +18,11 @@
  */
 #include <stdlib.h>
 
+#include "common/platform.h"
 #include "mgos.h"
 #include "mgos_http_server.h"
 #include "mgos_rpc.h"
 #include "mgos_wifi.h"
-
-#include "common/platform.h"
 
 #if CS_PLATFORM == CS_P_ESP8266
 #include "user_interface.h"
@@ -154,15 +153,15 @@ static void http_handler(struct mg_connection *nc, int ev, void *p,
   cs_stat_t st;
   bool is_file = (mg_stat(uri, &st) == 0);
   bool is_dir = is_file && S_ISDIR(st.st_mode);
-  LOG(LL_INFO,
-      ("is_rpc: %s, is_file: %s, is_dir: %s", is_rpc ? "true" : "false",
-       is_file ? "true" : "false", is_dir ? "true" : "false"));
+  LOG(LL_INFO, ("%.*s: is_rpc: %s, is_file: %s, is_dir: %s", (int) msg->uri.len,
+                msg->uri.p, is_rpc ? "true" : "false",
+                is_file ? "true" : "false", is_dir ? "true" : "false"));
   if (is_rpc || is_file || is_dir) {
     http_event_handler(nc, ev, p, user_data);
     return;
   }
   char *redirect_url = get_redirect_url();
-  LOG(LL_DEBUG, ("Redirecting to: %s", redirect_url));
+  LOG(LL_INFO, ("Redirecting to: %s", redirect_url));
   mg_http_send_redirect(nc, 302, mg_mk_str(redirect_url), mg_mk_str(NULL));
 }
 
