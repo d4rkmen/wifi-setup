@@ -118,7 +118,7 @@
                 resp.forEach(function (e) {
                     var d = E('div'), i = E('a'), c = E('a');
                     i[S]('class', 's'); c[S]('class', 'q');
-                    i.onclick = function () { g('s').value = e.ssid; g('p').focus(); };
+                    i.onclick = function () { g('b').innerText = e.bssid; g('s').value = e.ssid; g('p').focus(); };
                     c.title = e.bssid;
                     i[A](document.createTextNode(e.ssid));
                     c[H] = R(parseInt(e.rssi)) + '% ' + String.fromCodePoint((parseInt(e.auth_mode) == 0) ? 0x26A0 : 0x1F510);
@@ -136,7 +136,7 @@
             bss[S]("class", "spin");
             wl[H] = "Saving...";
 
-            var sta = { enable: true, ssid: g('s').value, pass: g('p').value };
+            var sta = { enable: true, ssid: g('s').value, pass: g('p').value, bssid: g('bssid').checked===true ? g('b').innerText : '' };
             var config = { wifi: { sta: sta, ap: { enable: false } } };
 
             rpc_call("Config.Set", function (resp) {
@@ -158,7 +158,7 @@
             bss[S]("class", "spin");
             wl[H] = "Resetting...";
 
-            var sta = { enable: false, ssid: '', pass: '' };
+            var sta = { enable: false, ssid: '', pass: '', bssid: '' };
             var config = { wifi: { sta: sta, ap: { enable: true } } };
 
             rpc_call("Config.Set", function (resp) {
@@ -282,6 +282,9 @@
         <input id='s' name='n' length=32 placeholder='SSID'>
         <br>
         <input id='p' name='p' length=64 type='password' placeholder='password'>
+        <br>
+        <input style="width:auto; float:right;" type="checkbox" id="bssid" unchecked>
+        <label for="bssid" id="b">Lock to selected BSSID</label>
         <br>
         <br>
         <button id="save" onclick="save_rpc()"><span id="saves">&#x1F4BE;</span> Save
